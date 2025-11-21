@@ -66,3 +66,60 @@ FORMATO:
 [MUSICA]
 ...palabra...
 """
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": f"Palabra clave: '{prompt_palabra}'"}
+            ],
+            model="llama-3.3-70b-versatile",
+            temperature=0.75,
+            max_tokens=max_tokens,
+        )
+
+        full_text = chat_completion.choices[0].message.content
+
+        # Valores por defecto
+        story = "Error al procesar la historia."
+        img_prompt = ""
+        mood = "SUSPENSO" # Por defecto
+
+        if "[HISTORIA]" in full_text:
+            parts = full_text.split("[IMAGEN]")
+            story = parts[0].replace("[HISTORIA]", "").strip()
+            
+            if len(parts) > 1:
+                remaining = parts[1]
+                if "[MUSICA]" in remaining:
+                    img_parts = remaining.split("[MUSICA]")
+                    img_prompt = img_parts[0].strip()
+                    
+                    # --- CORRECCIÓN APLICADA AQUÍ ---
+                    raw_mood = img_parts[1].strip().upper()
+                    
+                    # Buscamos la palabra clave dentro del texto sucio
+                    if "ACCION" in raw_mood or "ACCIÓN" in raw_mood:
+                        mood = "ACCION"
+                    elif "SOBRENATURAL" in raw_mood:
+                        mood = "SOBRENATURAL"
+                    else:
+                        mood = "SUSPENSO"
+        
+        return story, img_prompt, mood
+
+    except Exception as e:
+        st.error(f"Error crítico en Groq: {e}")
+        return None, None, None
+    
+def narrate_story(text):
+    """Genera el audio solo cuando se solicita"""
+    try:
+        if not os.path.exists("audio"):
+            os.makedirs("audio")
+        
+        file_path = "audio/narration.mp3"
+        tts = gTTS(text=text, lang='es')
+        tts.save(file_path)
+        return file_path
+    except Exception as e:
+        st.error(f"Error al crear la voz: {e}")
+        return None
