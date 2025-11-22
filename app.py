@@ -123,3 +123,93 @@ def narrate_story(text):
     except Exception as e:
         st.error(f"Error al crear la voz: {e}")
         return None
+    
+def generate_image_hf(image_prompt):
+    """
+    Genera imágenes usando la API pública y gratuita de Pollinations.ai.
+    No requiere API Key ni autenticación.
+    """
+    try:
+        # Pollinations permite personalizar el modelo añadiendo parámetros a la URL
+        # model='flux' da resultados muy realistas y de terror (mejores que SD 1.5)
+        prompt_encoded = requests.utils.quote(image_prompt)
+        
+        # URL Mágica: simplemente pones el prompt en la URL
+        api_url = f"https://image.pollinations.ai/prompt/{prompt_encoded}?model=flux&width=1024&height=768&nologo=true"
+        
+        st.info(f"🎨 Generando arte con Pollinations...")
+        
+        # Hacemos la petición (GET es suficiente para esta API)
+        response = requests.get(api_url)
+        
+        if response.status_code == 200:
+            st.success("✅ Imagen manifestada con éxito.")
+            return BytesIO(response.content)
+        else:
+            st.error(f"❌ Error en la invocación visual: {response.status_code}")
+            return None
+            
+    except Exception as e:
+        st.error(f"❌ Algo salió mal en el ritual de imagen: {e}")
+        return None
+
+def play_music(mood):
+    """Gestiona la reproducción de música según el ambiente"""
+    # Asegúrate de tener una carpeta 'music' con estos archivos mp3
+    # Si no tienes los archivos, la función no fallará, solo avisará.
+    music_map = {
+        "SUSPENSO": "music/suspense.mp3",
+        "ACCION": "music/action.mp3",
+        "SOBRENATURAL": "music/creepy.mp3"
+    }
+    
+    file_path = music_map.get(mood, "music/suspense.mp3")
+    
+    if not os.path.exists("music"):
+        os.makedirs("music") # Crea la carpeta si no existe
+        
+    if os.path.exists(file_path):
+        try:
+            pygame.mixer.music.stop()
+            pygame.mixer.music.load(file_path)
+            pygame.mixer.music.play(-1) # Loop infinito
+            pygame.mixer.music.set_volume(0.4)
+        except Exception as e:
+            st.warning(f"Error reproduciendo audio: {e}")
+    else:
+        # Si no hay archivo, no pasa nada crítico
+        pass
+
+
+def stop_music():
+    try:
+        pygame.mixer.music.stop()
+    except:
+        pass
+
+# --- INTERFAZ PRINCIPAL ---
+
+def main():
+    st.markdown("<h1 class='flicker-text'>💀 NARRADOR DE PESADILLAS 💀</h1>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # --- GESTIÓN DE ESTADO (MEMORIA) ---
+    # Inicializamos variables para que no se borren al dar clic en botones
+    if 'current_story' not in st.session_state:
+        st.session_state['current_story'] = None
+    if 'current_mood' not in st.session_state:
+        st.session_state['current_mood'] = None
+    if 'current_image' not in st.session_state:
+        st.session_state['current_image'] = None
+    if 'img_prompt' not in st.session_state:
+        st.session_state['img_prompt'] = ""
+
+    # --- BARRA DE ENTRADA ---
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        input_word = st.text_input("¿Qué alimenta tu miedo hoy?", placeholder="Ej: Espejo, Sótano, Muñeca...")
+    with col2:
+        st.write("") 
+        st.write("")
+        if st.button("⛔ SILENCIO"):
+            stop_music()
