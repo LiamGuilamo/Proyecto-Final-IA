@@ -213,3 +213,66 @@ def main():
         st.write("")
         if st.button("⛔ SILENCIO"):
             stop_music()
+
+     # --- BOTÓN DE GENERACIÓN (INVOCAR) ---
+    if st.button("🔮 INVOCAR HISTORIA", use_container_width=True):
+        if not input_word:
+            st.warning("Debes ofrecer una palabra para el ritual...")
+        else:
+            with st.status("Realizando ritual de invocación...", expanded=True) as status:
+                
+                # 1. Generar Texto (Groq)
+                st.write("🧠 Consultando a los espíritus...")
+                story, img_prompt, mood = generate_horror_content(input_word)
+                
+                if story:
+                    # Guardamos todo en session_state
+                    st.session_state['current_story'] = story
+                    st.session_state['current_mood'] = mood
+                    st.session_state['img_prompt'] = img_prompt
+                    
+                    # 2. Generar Imagen
+                    st.write("🎨 Materializando la visión...")
+                    image_data = generate_image_hf(img_prompt) 
+                    st.session_state['current_image'] = image_data
+                    
+                    # 3. Audio Fondo
+                    st.write(f"🎵 Sintonizando ambiente: {mood}...")
+                    play_music(mood)
+                    
+                    status.update(label="¡El ritual se ha completado!", state="complete", expanded=False)
+                else:
+                    status.update(label="El ritual falló.", state="error")
+
+    # --- MOSTRAR RESULTADOS (ESTO SE EJECUTA SIEMPRE QUE HAYA HISTORIA) ---
+    if st.session_state['current_story']:
+        st.markdown("---")
+        
+        c_img, c_txt = st.columns([1, 1.5])
+        
+        with c_img:
+            if st.session_state['current_image']:
+                st.image(st.session_state['current_image'], 
+                         caption=f"Vision: {st.session_state['img_prompt'][:30]}...", 
+                         use_container_width=True)
+            else:
+                st.warning("La imagen no pudo manifestarse.")
+                
+        with c_txt:
+            mood = st.session_state['current_mood']
+            st.markdown(f"### Ambiente Detectado: *{mood}*")
+            
+            # --- AQUÍ ESTÁ EL BOTÓN DE NARRAR ---
+            # Usamos una key única para evitar conflictos
+            if st.button("🗣️ NARRAR HISTORIA EN VOZ ALTA", key="btn_narrar"):
+                with st.spinner("Invocando la voz de ultratumba..."):
+                    audio_file = narrate_story(st.session_state['current_story'])
+                    if audio_file:
+                        # Autoplay=True hace que suene apenas termina de cargar
+                        st.audio(audio_file, format="audio/mp3", start_time=0, autoplay=True)
+
+            # Texto de la historia
+            st.markdown(f'<div class="story-text">{st.session_state["current_story"]}</div>', unsafe_allow_html=True)
+if __name__ == "__main__":
+    main()
+
