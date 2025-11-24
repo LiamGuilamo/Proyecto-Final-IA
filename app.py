@@ -48,8 +48,8 @@ def generate_horror_content(prompt_palabra, max_tokens=800):
     """
     try:
         client = OpenAI(
-            api_key=st.secrets[""],
-            base_url="",
+            api_key=st.secrets["GROQ_API_KEY"],
+            base_url="https://api.groq.com/openai/v1",
         )
 
         system_prompt = """
