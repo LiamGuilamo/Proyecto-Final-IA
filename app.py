@@ -4,7 +4,7 @@ import requests
 import os
 import pygame
 from io import BytesIO
-from gtts import gTTS  # <--- AGREGA ESTO
+from gtts import gTTS 
 
 # --- CONFIGURACIÓN INICIAL DE STREAMLIT ---
 st.set_page_config(
@@ -40,7 +40,7 @@ try:
 except Exception as e:
     st.warning("No se pudo inicializar el sistema de audio. (Puede fallar en servidores cloud).")
 
-# --- FUNCIONES DEL NUCLEO (GROQ + HUGGING FACE) ---
+# --- FUNCIONES DEL NUCLEO (GROQ ) ---
 
 def generate_horror_content(prompt_palabra, max_tokens=800):
     """
@@ -93,7 +93,7 @@ FORMATO:
                     img_parts = remaining.split("[MUSICA]")
                     img_prompt = img_parts[0].strip()
                     
-                    # --- CORRECCIÓN APLICADA AQUÍ ---
+                   
                     raw_mood = img_parts[1].strip().upper()
                     
                     # Buscamos la palabra clave dentro del texto sucio
@@ -127,7 +127,6 @@ def narrate_story(text):
 def generate_image_hf(image_prompt):
     """
     Genera imágenes usando la API pública y gratuita de Pollinations.ai.
-    No requiere API Key ni autenticación.
     """
     try:
         # Pollinations permite personalizar el modelo añadiendo parámetros a la URL
@@ -139,7 +138,7 @@ def generate_image_hf(image_prompt):
         
         st.info(f"🎨 Generando arte con Pollinations...")
         
-        # Hacemos la petición (GET es suficiente para esta API)
+        # Hacemos la petición 
         response = requests.get(api_url)
         
         if response.status_code == 200:
@@ -155,8 +154,7 @@ def generate_image_hf(image_prompt):
 
 def play_music(mood):
     """Gestiona la reproducción de música según el ambiente"""
-    # Asegúrate de tener una carpeta 'music' con estos archivos mp3
-    # Si no tienes los archivos, la función no fallará, solo avisará.
+    # Funcion para reproducir la musica, dependiendo del tipo de escenario
     music_map = {
         "SUSPENSO": "music/suspense.mp3",
         "ACCION": "music/action.mp3",
@@ -177,7 +175,7 @@ def play_music(mood):
         except Exception as e:
             st.warning(f"Error reproduciendo audio: {e}")
     else:
-        # Si no hay archivo, no pasa nada crítico
+        
         pass
 
 
@@ -193,7 +191,7 @@ def main():
     st.markdown("<h1 class='flicker-text'>💀 NARRADOR DE PESADILLAS 💀</h1>", unsafe_allow_html=True)
     st.markdown("---")
     
-    # --- GESTIÓN DE ESTADO (MEMORIA) ---
+    # GESTIÓN DE ESTADO 
     # Inicializamos variables para que no se borren al dar clic en botones
     if 'current_story' not in st.session_state:
         st.session_state['current_story'] = None
@@ -204,7 +202,7 @@ def main():
     if 'img_prompt' not in st.session_state:
         st.session_state['img_prompt'] = ""
 
-    # --- BARRA DE ENTRADA ---
+    # BARRA DE ENTRADA 
     col1, col2 = st.columns([3, 1])
     with col1:
         input_word = st.text_input("¿Qué alimenta tu miedo hoy?", placeholder="Ej: Espejo, Sótano, Muñeca...")
@@ -214,7 +212,7 @@ def main():
         if st.button("⛔ SILENCIO"):
             stop_music()
 
-     # --- BOTÓN DE GENERACIÓN (INVOCAR) ---
+     # BOTÓN DE GENERACIÓN (INVOCAR)
     if st.button("🔮 INVOCAR HISTORIA", use_container_width=True):
         if not input_word:
             st.warning("Debes ofrecer una palabra para el ritual...")
@@ -236,7 +234,7 @@ def main():
                     image_data = generate_image_hf(img_prompt) 
                     st.session_state['current_image'] = image_data
                     
-                    # 3. Audio Fondo
+                    # 3. Audio de Fondo
                     st.write(f"🎵 Sintonizando ambiente: {mood}...")
                     play_music(mood)
                     
@@ -244,7 +242,7 @@ def main():
                 else:
                     status.update(label="El ritual falló.", state="error")
 
-    # --- MOSTRAR RESULTADOS (ESTO SE EJECUTA SIEMPRE QUE HAYA HISTORIA) ---
+    # MOSTRAR RESULTADOS (ESTO SE EJECUTA SIEMPRE QUE HAYA HISTORIA) 
     if st.session_state['current_story']:
         st.markdown("---")
         
@@ -262,7 +260,7 @@ def main():
             mood = st.session_state['current_mood']
             st.markdown(f"### Ambiente Detectado: *{mood}*")
             
-            # --- AQUÍ ESTÁ EL BOTÓN DE NARRAR ---
+            # BOTÓN DE NARRAR 
             # Usamos una key única para evitar conflictos
             if st.button("🗣️ NARRAR HISTORIA EN VOZ ALTA", key="btn_narrar"):
                 with st.spinner("Invocando la voz de ultratumba..."):
