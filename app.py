@@ -6,7 +6,7 @@ import pygame
 from io import BytesIO
 from gtts import gTTS 
 
-# --- CONFIGURACIÓN INICIAL DE STREAMLIT ---
+# CONFIGURACIÓN INICIAL DE STREAMLIT 
 st.set_page_config(
     page_title="Narrador de Pesadillas",
     page_icon="👻",
@@ -34,13 +34,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- INICIALIZACIÓN DE AUDIO ---
+#INICIALIZACIÓN DE AUDIO
 try:
     pygame.mixer.init()
 except Exception as e:
     st.warning("No se pudo inicializar el sistema de audio. (Puede fallar en servidores cloud).")
 
-# --- FUNCIONES DEL NUCLEO (GROQ ) ---
+# FUNCIONES DEL NUCLEO (GROQ )
 
 def generate_horror_content(prompt_palabra, max_tokens=800):
     """
